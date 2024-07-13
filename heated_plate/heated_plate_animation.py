@@ -64,5 +64,5 @@ ani = animation.FuncAnimation(fig=fig, func=update, frames=visible_frames, inter
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
 
-ani.save('heated_plate_animation.mp4', writer=writer)
+ani.save('../animations/heated_plate_animation.mp4', writer=writer)
 plt.show()
