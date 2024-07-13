@@ -11,7 +11,7 @@ Each simulation is in a separate directory. The simulation and animation are sep
 In the animation file, configurations can be changed to change the simulation parameters. To render an animation, 
 run the animation file.
 
-_(Currently, the animations only work on MacOS)_
+_(Currently, the animations are not supported on linux)_
 
 ## Heated Plate
 The first simulation is a heated plate. 

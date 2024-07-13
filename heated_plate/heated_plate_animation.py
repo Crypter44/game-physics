@@ -1,10 +1,17 @@
+import sys
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 import heated_plate_simulation as hps
 
-mpl.use('macosx')
+if sys.platform == 'win32':
+    print('\nRunning on Windows: setting matplotlib backend to TkAgg\n')
+    mpl.use('TkAgg')
+elif sys.platform == 'darwin':
+    print('\nRunning on MacOS: setting matplotlib backend to macosx\n')
+    mpl.use('macosx')
 
 animation_length = 15
 animation_time_step = 0.01
@@ -64,5 +71,5 @@ ani = animation.FuncAnimation(fig=fig, func=update, frames=visible_frames, inter
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
 
-ani.save('../animations/heated_plate_animation.mp4', writer=writer)
+ani.save('heated_plate_animation.mp4', writer=writer)
 plt.show()
