@@ -49,6 +49,9 @@ frames = cs.run_simulation(
 if sys.platform == 'win32':
     print('\nRunning on Windows: setting matplotlib backend to TkAgg\n')
     mpl.use('TkAgg')
+elif sys.platform == 'linux':
+    print('\nRunning on Linux: setting matplotlib backend to TkAgg\n')
+    mpl.use('TkAgg')
 elif sys.platform == 'darwin':
     print('\nRunning on MacOS: setting matplotlib backend to macosx\n')
     mpl.use('macosx')
