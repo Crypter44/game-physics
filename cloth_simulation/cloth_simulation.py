@@ -42,8 +42,6 @@ def run_simulation(
     """
     positions = [setup_positions(spacial_dim, spacing).reshape((spacial_dim * spacial_dim, 3))]
     velocities = [np.zeros((spacial_dim, spacial_dim, 3)).reshape((spacial_dim * spacial_dim), 3)]
-    mass = 0.030
-    spacing = 0.1
 
     for i in tqdm(range(num_steps), desc="Running simulation", unit="steps"):
         if simulation_type == 'rk2':

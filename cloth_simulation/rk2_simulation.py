@@ -88,7 +88,7 @@ def f(
         calculate_forces(forces, i, spacial_dim, positions, velocities, spacing, spring_constants, damping_constants,
                          gravity)
 
-    return positions
+    return forces
 
 
 def calculate_corners(spacial_dim, num_of_fixed_corners):
@@ -156,7 +156,7 @@ def calculate_forces(
 
 
 def calculate_spring(p1, p2, positions, velocities, l0, ks, kd):
-    x12 = p2 - p1
+    x12 = positions[p2] - positions[p1]
     x12_norm = np.linalg.norm(x12)
     x12_hat = x12 / x12_norm
     v12 = velocities[p2] - velocities[p1]
