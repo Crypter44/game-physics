@@ -83,10 +83,10 @@ def f(
     # calculate n corners
     corners = calculate_corners(spacial_dim, num_of_fixed_corners)
     for i in range(len(positions)):
-        if i in corners:
-            continue
         calculate_forces(forces, i, spacial_dim, positions, velocities, spacing, spring_constants, damping_constants,
                          gravity)
+        if i in corners:
+            forces[i] = 0
 
     return forces
 

@@ -8,7 +8,7 @@ def setup_positions(spacial_dim, spacing):
     positions = np.zeros((spacial_dim, spacial_dim, 3))
     for i in range(spacial_dim):
         for j in range(spacial_dim):
-            positions[i][j] = np.array([j * spacing, i * spacing, 0])
+            positions[i][j] = np.array([j * spacing, i * spacing, spacial_dim // 2])
 
     # The resulting positions can be accessed as position[y][x] where y is the row and x is the column
     return positions

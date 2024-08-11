@@ -7,10 +7,10 @@ import numpy as np
 import cloth_simulation as cs
 
 # --------- CONFIG FOR ANIMATION ---------
-animation_length = 1
-animation_time_step = 0.01
+animation_length = 15
+animation_time_step = 0.001
 animation_frames = int(animation_length / animation_time_step)
-fps = 10
+fps = 30
 visible_frames = animation_length * fps
 frame_skip_factor = animation_frames / visible_frames
 
@@ -23,12 +23,20 @@ print(f"    Visible frames: {visible_frames}")
 print(f"    Frame skip factor: {frame_skip_factor}\n")
 
 # --------- CONFIG FOR SIMULATION ---------
-spacial_dim = 3
+spacial_dim = 4
 mass = 0.3
 spacing = 1
-spring_constants = np.array([0, 0, 0])
-damping_constants = np.array([0, 0, 0])
-gravity = np.array([0, 0, 0])
+spring_constants = np.array([300, 200, 100])
+damping_constants = np.array([50, 50, 50])
+gravity = np.array([0, 0, 1])
+
+print("Simulation parameters:")
+print(f"    Spacial dimension: {spacial_dim}")
+print(f"    Mass: {mass}")
+print(f"    Spacing: {spacing}")
+print(f"    Spring constants: {spring_constants}")
+print(f"    Damping constants: {damping_constants}")
+print(f"    Gravity: {gravity}\n")
 
 
 # --------- SIMULATION ---------
@@ -93,4 +101,8 @@ def update(frame):
 
 ani = animation.FuncAnimation(fig, update, frames=visible_frames, interval=1000 / fps)
 
+Writer = animation.writers['ffmpeg']
+writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
+
+ani.save('cloth_animation.mp4', writer=writer)
 plt.show()
