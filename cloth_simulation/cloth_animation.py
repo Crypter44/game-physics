@@ -8,7 +8,7 @@ import cloth_simulation as cs
 
 # --------- CONFIG FOR ANIMATION ---------
 animation_length = 15
-animation_time_step = 0.001
+animation_time_step = 0.01
 animation_frames = int(animation_length / animation_time_step)
 fps = 30
 visible_frames = animation_length * fps
@@ -26,9 +26,9 @@ print(f"    Frame skip factor: {frame_skip_factor}\n")
 spacial_dim = 4
 mass = 0.3
 spacing = 1
-spring_constants = np.array([300, 200, 100])
-damping_constants = np.array([50, 50, 50])
-gravity = np.array([0, 0, 1])
+spring_constants = np.array([0.1, 0.1, 0.1])
+damping_constants = np.array([0, 0, 0])
+gravity = np.array([0, 0, 0])
 
 print("Simulation parameters:")
 print(f"    Spacial dimension: {spacial_dim}")
@@ -37,7 +37,6 @@ print(f"    Spacing: {spacing}")
 print(f"    Spring constants: {spring_constants}")
 print(f"    Damping constants: {damping_constants}")
 print(f"    Gravity: {gravity}\n")
-
 
 # --------- SIMULATION ---------
 frames = cs.run_simulation(
@@ -49,7 +48,7 @@ frames = cs.run_simulation(
     gravity,
     animation_time_step,
     animation_frames,
-    simulation_type='rk2',
+    simulation_type='implicit_euler',
     num_of_fixed_corners=2
 )
 
@@ -94,7 +93,7 @@ plot = [ax.plot_wireframe(frames[0][0], frames[0][1], frames[0][2])]
 # --------- ANIMATION ---------
 def update(frame):
     plot[0].remove()
-    X, Y, Z = frames[int(frame*frame_skip_factor)]
+    X, Y, Z = frames[int(frame * frame_skip_factor)]
     plot[0] = ax.plot_wireframe(X, Y, Z)
     return plot[0]
 

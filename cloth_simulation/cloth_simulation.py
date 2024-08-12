@@ -43,8 +43,8 @@ def run_simulation(
     positions = [setup_positions(spacial_dim, spacing).reshape((spacial_dim * spacial_dim, 3))]
     velocities = [np.zeros((spacial_dim, spacial_dim, 3)).reshape((spacial_dim * spacial_dim), 3)]
 
-    for i in tqdm(range(num_steps), desc="Running simulation", unit="steps"):
-        if simulation_type == 'rk2':
+    if simulation_type == 'rk2':
+        for i in tqdm(range(num_steps), desc="Running simulation", unit="steps"):
             pos, vel = rk2.step(
                 spacial_dim,
                 positions[i],
@@ -57,22 +57,29 @@ def run_simulation(
                 dt,
                 num_of_fixed_corners
             )
-        elif simulation_type == 'implicit_euler':
+            velocities.append(vel)
+            positions.append(pos)
+    elif simulation_type == 'implicit_euler':
+        M = ie.setup_M(mass, spacial_dim)
+        Ds = ie.setup_Ds(damping_constants, spacial_dim)
+        for i in tqdm(range(num_steps), desc="Running simulation", unit="steps"):
             pos, vel = ie.step(
+                spacial_dim,
                 positions[i],
                 velocities[i],
-                mass,
+                M,
                 spacing,
                 spring_constants,
                 damping_constants,
+                Ds,
                 gravity,
                 dt,
                 num_of_fixed_corners
             )
-        else:
-            raise ValueError("Invalid simulation type. Please choose 'rk2' or 'implicit_euler'")
-        velocities.append(vel)
-        positions.append(pos)
+            velocities.append(vel)
+            positions.append(pos)
+    else:
+        raise ValueError("Invalid simulation type. Please choose 'rk2' or 'implicit_euler'")
 
     results = []
     for i in tqdm(range(len(positions)), desc="Reshaping results", unit="steps"):

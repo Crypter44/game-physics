@@ -155,11 +155,11 @@ def calculate_forces(
     forces[i] += np.array([0, 0, -1]) * gravity
 
 
-def calculate_spring(p1, p2, positions, velocities, l0, ks, kd):
-    x12 = positions[p2] - positions[p1]
+def calculate_spring(i, j, positions, velocities, l0, ks, kd):
+    x12 = positions[j] - positions[i]
     x12_norm = np.linalg.norm(x12)
     x12_hat = x12 / x12_norm
-    v12 = velocities[p2] - velocities[p1]
+    v12 = velocities[j] - velocities[i]
 
     spring_force = ks * (x12_norm - l0) + kd * np.dot(v12, x12_hat)
     return spring_force * x12_hat
