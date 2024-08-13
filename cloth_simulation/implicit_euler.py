@@ -76,9 +76,13 @@ def setup_K_structural(positions, l0, k, spacial_dim):
             else:
                 # check if the two positions are adjacent
                 if (
+                        # right
                         (i + 1 == j and i % spacial_dim < spacial_dim - 1)
+                        # left
                         or (i - 1 == j and i % spacial_dim > 0)
+                        # down
                         or (i + spacial_dim == j and i < spacial_dim ** 2 - spacial_dim)
+                        # up
                         or (i - spacial_dim == j and i >= spacial_dim)
                 ):
                     block = calc_entry(positions, i, j, k, l0)
@@ -175,7 +179,7 @@ def calc_diagonal_entries(data, indices, indptr, spacial_dim):
             block = sum(row)
         data.insert(i * (spacial_dim + 1), -block)
         indices.insert(i * (spacial_dim + 1), i)
-        for j in range(i + 1, spacial_dim + 1):
+        for j in range(i + 1, spacial_dim ** 2 + 1):
             indptr[j] += 1
 
 
@@ -236,7 +240,7 @@ def f_structural(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, veloc
             forces[i + spacial_dim] += -force
 
         if i in corners:
-            forces[i*3:(i+1)*3] = [0, 0, 0]
+            forces[i] = [0, 0, 0]
 
     return forces.reshape((spacial_dim * spacial_dim * 3))
 
@@ -259,7 +263,7 @@ def f_shear(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, velocities
             forces[i + spacial_dim - 1] += -force
 
         if i in corners:
-            forces[i*3:(i+1)*3] = [0, 0, 0]
+            forces[i] = [0, 0, 0]
 
     return forces.reshape((spacial_dim * spacial_dim * 3))
 
@@ -267,6 +271,7 @@ def f_shear(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, velocities
 def f_flexion(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, velocities):
     forces = np.zeros((spacial_dim * spacial_dim, 3))
     # calculate n corners
+    c = 0
     corners = rk2.calculate_corners(spacial_dim, num_of_fixed_corners)
     for i in range(len(positions)):
         # flexion spring right
@@ -282,6 +287,6 @@ def f_flexion(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, velociti
             forces[i + 2 * spacial_dim] += -force
 
         if i in corners:
-            forces[i*3:(i+1)*3] = [0, 0, 0]
+            forces[i] = [0, 0, 0]
 
     return forces.reshape((spacial_dim * spacial_dim * 3))

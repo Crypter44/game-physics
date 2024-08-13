@@ -23,12 +23,12 @@ print(f"    Visible frames: {visible_frames}")
 print(f"    Frame skip factor: {frame_skip_factor}\n")
 
 # --------- CONFIG FOR SIMULATION ---------
-spacial_dim = 2
+spacial_dim = 4
 mass = 0.3
 spacing = 1
-spring_constants = np.array([0, 0, 0])
+spring_constants = np.array([100, 50, 10])
 damping_constants = np.array([0, 0, 0])
-gravity = np.array([0, 0, 0])
+gravity = np.array([0, 0, 10])
 
 print("Simulation parameters:")
 print(f"    Spacial dimension: {spacial_dim}")
