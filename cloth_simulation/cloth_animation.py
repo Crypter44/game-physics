@@ -23,10 +23,10 @@ print(f"    Visible frames: {visible_frames}")
 print(f"    Frame skip factor: {frame_skip_factor}\n")
 
 # --------- CONFIG FOR SIMULATION ---------
-spacial_dim = 4
+spacial_dim = 2
 mass = 0.3
 spacing = 1
-spring_constants = np.array([0.1, 0.1, 0.1])
+spring_constants = np.array([0, 0, 0])
 damping_constants = np.array([0, 0, 0])
 gravity = np.array([0, 0, 0])
 
@@ -85,7 +85,7 @@ ax.xaxis.label.set_color('white')
 ax.yaxis.label.set_color('white')
 ax.zaxis.label.set_color('white')
 
-ax.axis('off')
+# ax.axis('off')
 
 plot = [ax.plot_wireframe(frames[0][0], frames[0][1], frames[0][2])]
 
@@ -100,8 +100,8 @@ def update(frame):
 
 ani = animation.FuncAnimation(fig, update, frames=visible_frames, interval=1000 / fps)
 
-Writer = animation.writers['ffmpeg']
-writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
-
-ani.save('cloth_animation.mp4', writer=writer)
+# Writer = animation.writers['ffmpeg']
+# writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
+#
+# ani.save('cloth_animation.mp4', writer=writer)
 plt.show()

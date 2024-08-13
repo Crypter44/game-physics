@@ -32,12 +32,12 @@ def step(
     delta_v += solve_step(M, Ds[2], Ks[2], fs[2], dt, velocities, spacial_dim)
 
     # do step for gravity
-    delta_v += np.tile(gravity, spacial_dim ** 2)
+    delta_v -= dt * np.tile(gravity, spacial_dim ** 2)
 
     # fix corners
     corners = rk2.calculate_corners(spacial_dim, num_of_fixed_corners)
     for i in corners:
-        delta_v[i*3:(i+1)*3] = [0, 0, 0]
+        delta_v[i * 3:(i + 1) * 3] = [0, 0, 0]
 
     next_vel = velocities + delta_v.reshape((spacial_dim ** 2, 3))
     next_pos = positions + dt * next_vel
@@ -75,7 +75,12 @@ def setup_K_structural(positions, l0, k, spacial_dim):
                 continue
             else:
                 # check if the two positions are adjacent
-                if i + 1 == j or i - 1 == j or i + spacial_dim == j or i - spacial_dim == j:
+                if (
+                        (i + 1 == j and i % spacial_dim < spacial_dim - 1)
+                        or (i - 1 == j and i % spacial_dim > 0)
+                        or (i + spacial_dim == j and i < spacial_dim ** 2 - spacial_dim)
+                        or (i - spacial_dim == j and i >= spacial_dim)
+                ):
                     block = calc_entry(positions, i, j, k, l0)
                     data.append(block)
                     indices.append(j)
@@ -99,10 +104,22 @@ def setup_K_shear(positions, l0, k, spacial_dim):
             else:
                 # check if the two positions are diagonally adjacent
                 if (
-                        i + spacial_dim + 1 == j
-                        or i + spacial_dim - 1 == j
-                        or i - spacial_dim + 1 == j
-                        or i - spacial_dim - 1 == j
+                        # right down
+                        (i + spacial_dim + 1 == j
+                         and i % spacial_dim < spacial_dim - 1
+                         and i < spacial_dim ** 2 - spacial_dim)
+                        # left down
+                        or (i + spacial_dim - 1 == j
+                            and i % spacial_dim > 0
+                            and i < spacial_dim ** 2 - spacial_dim)
+                        # right up
+                        or (i - spacial_dim + 1 == j
+                            and i % spacial_dim < spacial_dim - 1
+                            and i >= spacial_dim)
+                        # left up
+                        or (i - spacial_dim - 1 == j
+                            and i % spacial_dim > 0
+                            and i >= spacial_dim)
                 ):
                     block = calc_entry(positions, i, j, k, l0)
                     data.append(block)
@@ -127,10 +144,10 @@ def setup_K_flexion(positions, l0, k, spacial_dim):
             else:
                 # check if the two positions are two away
                 if (
-                        i + 2 == j
-                        or i - 2 == j
-                        or i + 2 * spacial_dim == j
-                        or i - 2 * spacial_dim == j
+                        (i + 2 == j and i % spacial_dim < spacial_dim - 2)
+                        or (i - 2 == j and i % spacial_dim > 1)
+                        or (i + 2 * spacial_dim == j and i < spacial_dim ** 2 - 2 * spacial_dim)
+                        or (i - 2 * spacial_dim == j and i >= 2 * spacial_dim)
                 ):
                     block = calc_entry(positions, i, j, k, l0)
                     data.append(block)
@@ -145,8 +162,8 @@ def setup_K_flexion(positions, l0, k, spacial_dim):
 
 def calc_entry(positions, i, j, k, l0):
     xij = positions[j] - positions[i]
-    l = np.linalg.norm(xij)
-    return k * ((l - l0) / l * np.eye(3) + l0 * (xij @ xij.T) / l ** 3)
+    norm_xij = np.linalg.norm(xij)
+    return k * ((norm_xij - l0) / norm_xij * np.eye(3) + l0 * (np.outer(xij, xij)) / norm_xij ** 3)
 
 
 def calc_diagonal_entries(data, indices, indptr, spacial_dim):
@@ -156,7 +173,7 @@ def calc_diagonal_entries(data, indices, indptr, spacial_dim):
             block = np.zeros((3, 3))
         else:
             block = sum(row)
-        data.insert(i * (spacial_dim + 1), block)
+        data.insert(i * (spacial_dim + 1), -block)
         indices.insert(i * (spacial_dim + 1), i)
         for j in range(i + 1, spacial_dim + 1):
             indptr[j] += 1
@@ -180,10 +197,24 @@ def calc_fs(spacial_dim, num_of_fixed_corners, spring_constants, damping_constan
             positions,
             velocities
         ),
-        f_shear(spacial_dim, num_of_fixed_corners, spring_constants[1], spacing * np.sqrt(2), damping_constants[1],
-                positions, velocities),
-        f_flexion(spacial_dim, num_of_fixed_corners, spring_constants[2], spacing * 2, damping_constants[2], positions,
-                  velocities)
+        f_shear(
+            spacial_dim,
+            num_of_fixed_corners,
+            spacing * np.sqrt(2),
+            spring_constants[1],
+            damping_constants[1],
+            positions,
+            velocities
+        ),
+        f_flexion(
+            spacial_dim,
+            num_of_fixed_corners,
+            spacing * 2,
+            spring_constants[2],
+            damping_constants[2],
+            positions,
+            velocities
+        )
     ]
 
 
@@ -210,20 +241,20 @@ def f_structural(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, veloc
     return forces.reshape((spacial_dim * spacial_dim * 3))
 
 
-def f_shear(spacial_dim, num_of_fixed_corners, k, l0, d, positions, velocities):
+def f_shear(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, velocities):
     forces = np.zeros((spacial_dim * spacial_dim, 3))
     # calculate n corners
     corners = rk2.calculate_corners(spacial_dim, num_of_fixed_corners)
     for i in range(len(positions)):
         # shear spring right down
         if i % spacial_dim < spacial_dim - 1 and i < spacial_dim ** 2 - spacial_dim:
-            force = rk2.calculate_spring(i, i + spacial_dim + 1, positions, velocities, l0, k, d)
+            force = rk2.calculate_spring(i, i + spacial_dim + 1, positions, velocities, l0, ks, kd)
             forces[i] += force
             forces[i + spacial_dim + 1] += -force
 
         # shear spring left down
         if i % spacial_dim > 0 and i < spacial_dim ** 2 - spacial_dim:
-            force = rk2.calculate_spring(i, i + spacial_dim - 1, positions, velocities, l0, k, d)
+            force = rk2.calculate_spring(i, i + spacial_dim - 1, positions, velocities, l0, ks, kd)
             forces[i] += force
             forces[i + spacial_dim - 1] += -force
 
@@ -233,20 +264,20 @@ def f_shear(spacial_dim, num_of_fixed_corners, k, l0, d, positions, velocities):
     return forces.reshape((spacial_dim * spacial_dim * 3))
 
 
-def f_flexion(spacial_dim, num_of_fixed_corners, k, l0, d, positions, velocities):
+def f_flexion(spacial_dim, num_of_fixed_corners, l0, ks, kd, positions, velocities):
     forces = np.zeros((spacial_dim * spacial_dim, 3))
     # calculate n corners
     corners = rk2.calculate_corners(spacial_dim, num_of_fixed_corners)
     for i in range(len(positions)):
         # flexion spring right
         if i % spacial_dim < spacial_dim - 2:
-            force = rk2.calculate_spring(i, i + 2, positions, velocities, l0, k, d)
+            force = rk2.calculate_spring(i, i + 2, positions, velocities, l0, ks, kd)
             forces[i] += force
             forces[i + 2] += -force
 
         # flexion spring down
         if i < spacial_dim ** 2 - 2 * spacial_dim:
-            force = rk2.calculate_spring(i, i + 2 * spacial_dim, positions, velocities, l0, k, d)
+            force = rk2.calculate_spring(i, i + 2 * spacial_dim, positions, velocities, l0, ks, kd)
             forces[i] += force
             forces[i + 2 * spacial_dim] += -force
 
