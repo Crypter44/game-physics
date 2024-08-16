@@ -79,20 +79,20 @@ class StaggeredGrid:
         :param row: row index
         :param col: column index
         :param side: which side of the cell
-        :return: the coordinates of the center of the side of the cell at (row, col)
+        :return: the coordinates (x, y) of the center of the side of the cell at (row, col)
         """
 
         if side == self.TOP:
-            return row - 0.5, col
+            return col, row - 0.5
 
         if side == self.RIGHT:
-            return row, col + 0.5
+            return col + 0.5, row
 
         if side == self.BOTTOM:
-            return row + 0.5, col
+            return col, row + 0.5
 
         if side == self.LEFT:
-            return row, col - 0.5
+            return col - 0.5, row
 
         raise ValueError("Invalid side")
 

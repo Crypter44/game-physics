@@ -40,9 +40,11 @@ fig.set_tight_layout(True)
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 
-velocities = fs.setup_vortex(spacial_dim, 0.5, np.array([9.5, 9.5]))
+velocities = fs.setup_vortex(spacial_dim, 0.5, np.array([9.5, 9.5])).to_regular_grid()
 # velocities += fs.setup_vortex(spacial_dim, 0.5, np.array([40.5, 40.5]), clockwise=True)
-pressure = ax.imshow(np.tile(np.linspace(0, spacial_dim, spacial_dim), spacial_dim).reshape((spacial_dim, spacial_dim)), cmap='Blues')
+pressures = np.tile(np.linspace(0, spacial_dim, spacial_dim), spacial_dim).reshape((spacial_dim, spacial_dim))
+
+pressure = ax.imshow(pressures, cmap='Blues')
 flow = ax.quiver(velocities[:,:,0], velocities[:,:,1], color='Black', angles='xy')
 
 cbar = fig.colorbar(pressure, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
