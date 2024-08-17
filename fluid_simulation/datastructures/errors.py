@@ -1,0 +1,2 @@
+class StaggeredGridIndexError(ValueError):
+    pass

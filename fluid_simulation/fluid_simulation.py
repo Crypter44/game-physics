@@ -1,6 +1,6 @@
 import numpy as np
 
-from staggered_grid import StaggeredGrid
+from datastructures.staggered_grid import StaggeredGrid
 
 
 def setup_vortex(spacial_dim, vortex_speed, vortex_center, clockwise=True):

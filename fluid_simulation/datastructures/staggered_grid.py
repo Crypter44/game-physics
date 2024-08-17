@@ -1,5 +1,7 @@
 import numpy as np
 
+from datastructures.errors import StaggeredGridIndexError
+
 
 class StaggeredGrid:
     TOP = 0
@@ -17,27 +19,35 @@ class StaggeredGrid:
         self.v = np.zeros((grid_dim + 1, grid_dim)) # v velocity component (y-axis)
 
     def top(self, row, col):
+        self.test_bounds(row, col, self.TOP)
         return self.v[row, col]
 
     def set_top(self, row, col, value):
+        self.test_bounds(row, col, self.TOP)
         self.v[row, col] = value
 
     def right(self, row, col):
+        self.test_bounds(row, col, self.RIGHT)
         return self.u[row, col + 1]
 
     def set_right(self, row, col, value):
+        self.test_bounds(row, col, self.RIGHT)
         self.u[row, col + 1] = value
 
     def bottom(self, row, col):
+        self.test_bounds(row, col, self.BOTTOM)
         return self.v[row + 1, col]
 
     def set_bottom(self, row, col, value):
+        self.test_bounds(row, col, self.BOTTOM)
         self.v[row + 1, col] = value
 
     def left(self, row, col):
+        self.test_bounds(row, col, self.LEFT)
         return self.u[row, col]
 
     def set_left(self, row, col, value):
+        self.test_bounds(row, col, self.LEFT)
         self.u[row, col] = value
 
     def __getitem__(self, key):
@@ -114,22 +124,22 @@ class StaggeredGrid:
 
     def test_bounds(self, row, col, side):
         if row < -1 or row > self.grid_dim:
-            raise ValueError("Row index out of bounds")
+            raise StaggeredGridIndexError("Row index out of bounds")
 
         if col < -1 or col > self.grid_dim:
-            raise ValueError("Column index out of bounds")
+            raise StaggeredGridIndexError("Column index out of bounds")
 
         if row == -1 and side != self.BOTTOM:
-            raise ValueError("Your row is out of regular bounds. You can only access the bottom side!")
+            raise StaggeredGridIndexError("Your row is out of regular bounds. You can only access the bottom side!")
 
         if row == self.grid_dim and side != self.TOP:
-            raise ValueError("Your row is out of regular bounds. You can only access the top side!")
+            raise StaggeredGridIndexError("Your row is out of regular bounds. You can only access the top side!")
 
         if col == -1 and side != self.RIGHT:
-            raise ValueError("Your column is out of regular bounds. You can only access the right side!")
+            raise StaggeredGridIndexError("Your column is out of regular bounds. You can only access the right side!")
 
         if col == self.grid_dim and side != self.LEFT:
-            raise ValueError("Your column is out of regular bounds. You can only access the left side!")
+            raise StaggeredGridIndexError("Your column is out of regular bounds. You can only access the left side!")
 
 def from_regular_grid(grid) -> StaggeredGrid:
     """
