@@ -8,27 +8,29 @@ def advect(velocities, dt):
     new_grid = StaggeredGrid(velocities.grid_dim)
     for row in range(velocities.grid_dim):
         for col in range(velocities.grid_dim):
-            # trace the particle located at the left wall
-            origin_x, origin_y = trace_particle(row, col, velocities.LEFT, velocities, dt)
+            # TODO: verify if the boundaries are advected or not
+            # trace the particle located at the right wall, if we are not at the rightmost column
+            origin_x, origin_y = trace_particle(row, col, velocities.RIGHT, velocities, dt)
             u = interpolate_u(origin_x, origin_y, velocities)
-            new_grid.set_left(row, col, u)
+            new_grid.set_right(row, col, u)
 
-            # trace the particle located at the top wall
-            origin_x, origin_y = trace_particle(row, col, velocities.TOP, velocities, dt)
+            # trace the particle located at the bottom wall, if we are not at the bottom row
+            origin_x, origin_y = trace_particle(row, col, velocities.BOTTOM, velocities, dt)
             v = interpolate_v(origin_x, origin_y, velocities)
-            new_grid.set_top(row, col, v)
+            new_grid.set_bottom(row, col, v)
 
-            # trace the particle located at the right wall, if we are at the rightmost column
-            if col == velocities.grid_dim - 1:
-                origin_x, origin_y = trace_particle(row, col, velocities.RIGHT, velocities, dt)
-                u = interpolate_u(origin_x, origin_y, velocities)
-                new_grid.set_right(row, col, u)
-
-            # trace the particle located at the bottom wall, if we are at the bottom row
-            if row == velocities.grid_dim - 1:
-                origin_x, origin_y = trace_particle(row, col, velocities.BOTTOM, velocities, dt)
-                v = interpolate_v(origin_x, origin_y, velocities)
-                new_grid.set_bottom(row, col, v)
+            # --------- OLD CODE, SHOULD BE UNNECESSARY BECAUSE OF BOUNDARY CONDITIONS ---------
+            # # trace the particle located at the right wall, if we are at the rightmost column
+            # if col == velocities.grid_dim - 1:
+            #     origin_x, origin_y = trace_particle(row, col, velocities.RIGHT, velocities, dt)
+            #     u = interpolate_u(origin_x, origin_y, velocities)
+            #     new_grid.set_right(row, col, u)
+            #
+            # # trace the particle located at the bottom wall, if we are at the bottom row
+            # if row == velocities.grid_dim - 1:
+            #     origin_x, origin_y = trace_particle(row, col, velocities.BOTTOM, velocities, dt)
+            #     v = interpolate_v(origin_x, origin_y, velocities)
+            #     new_grid.set_bottom(row, col, v)
 
     return new_grid
 
