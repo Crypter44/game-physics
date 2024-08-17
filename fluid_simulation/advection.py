@@ -32,35 +32,52 @@ def advect(velocities, dt):
 
 
 def trace_particle(row, col, side, velocities, dt):
-    end_x, end_y = velocities.coords(row, col, side)
+    """
+    Traces a particle back in time by dt seconds.
+    The particle is located at the position (row, col) of the grid and is located at the side of the grid specified by
+    the side parameter.
+    :param row: the row of the grid where the particle is located
+    :param col: the column of the grid where the particle is located
+    :param side: the side of the grid where the particle is located
+    :param velocities: the grid containing the velocities
+    :param dt: the time in seconds to trace the particle back
+    :return: the origin of the particle that was traced back in time
+    """
+    x, y = velocities.coords(row, col, side)
     if side == velocities.LEFT or side == velocities.RIGHT:
         u = velocities[row, col, side]
-        v = velocities.top(row, col)
+        v = interpolate_v(x, y, velocities)
+    elif side == velocities.TOP or side == velocities.BOTTOM:
+        u = interpolate_u(x, y, velocities)
+        v = velocities[row, col, side]
+    else:
+        raise ValueError("Invalid side")
+
+    return x - dt * u, y - dt * v
 
 
-def interpolate_u(start_x, start_y, velocities):
-    # TODO: Add bounds checking for each velocity access, and handle extrapolation
-    row, col = int(np.round(start_y)), int(np.round(start_x))
-    left1 = velocities[row, col, velocities.LEFT]
+def interpolate_u(x, y, velocities):
+    row, col = int(np.round(y)), int(np.round(x))
+    left1 = get_or_extrapolate(row, col, velocities.LEFT, velocities)
     pos_l1 = velocities.coords(row, col, velocities.LEFT)
 
-    right1 = velocities[row, col, velocities.RIGHT]
+    right1 = get_or_extrapolate(row, col, velocities.RIGHT, velocities)
     pos_r1 = velocities.coords(row, col, velocities.RIGHT)
 
-    if start_y > row:
-        left2 = velocities[row + 1, col, velocities.LEFT]
+    if y > row:
+        left2 = get_or_extrapolate(row + 1, col, velocities.LEFT, velocities)
         pos_l2 = velocities.coords(row + 1, col, velocities.LEFT)
-        right2 = velocities[row + 1, col, velocities.RIGHT]
+        right2 = get_or_extrapolate(row + 1, col, velocities.RIGHT, velocities)
     else:
-        left2 = velocities[row - 1, col, velocities.LEFT]
+        left2 = get_or_extrapolate(row - 1, col, velocities.LEFT, velocities)
         pos_l2 = velocities.coords(row - 1, col, velocities.LEFT)
-        right2 = velocities[row - 1, col, velocities.RIGHT]
+        right2 = get_or_extrapolate(row - 1, col, velocities.RIGHT, velocities)
 
     # weights (alpha, 1-alpha) for linear interpolation along x-axis
-    alpha = (start_x - pos_l1[0]) / (pos_r1[0] - pos_l1[0])
+    alpha = (x - pos_l1[0]) / (pos_r1[0] - pos_l1[0])
 
     # weights (beta, 1-beta) for linear interpolation along y-axis
-    beta = (start_y - pos_l1[1]) / (pos_l2[1] - pos_l1[1])
+    beta = (y - pos_l1[1]) / (pos_l2[1] - pos_l1[1])
 
     # linear interpolation along x-axis
     x_vel1 = left1 * (1 - alpha) + right1 * alpha
@@ -71,28 +88,28 @@ def interpolate_u(start_x, start_y, velocities):
     return u
 
 
-def interpolate_v(start_x, start_y, velocities):
-    row, col = int(np.round(start_y)), int(np.round(start_x))
-    top1 = velocities[row, col, velocities.TOP]
+def interpolate_v(x, y, velocities):
+    row, col = int(np.round(y)), int(np.round(x))
+    top1 = get_or_extrapolate(row, col, velocities.TOP, velocities)
     pos_t1 = velocities.coords(row, col, velocities.TOP)
 
-    bottom1 = velocities[row, col, velocities.BOTTOM]
+    bottom1 = get_or_extrapolate(row, col, velocities.BOTTOM, velocities)
     pos_b1 = velocities.coords(row, col, velocities.BOTTOM)
 
-    if start_x > col:
-        top2 = velocities[row, col + 1, velocities.TOP]
-        bottom2 = velocities[row, col + 1, velocities.BOTTOM]
+    if x > col:
+        top2 = get_or_extrapolate(row, col + 1, velocities.TOP, velocities)
+        bottom2 = get_or_extrapolate(row, col + 1, velocities.BOTTOM, velocities)
         pos_t2 = velocities.coords(row, col + 1, velocities.TOP)
     else:
-        top2 = velocities[row, col - 1, velocities.TOP]
-        bottom2 = velocities[row, col - 1, velocities.BOTTOM]
+        top2 = get_or_extrapolate(row, col - 1, velocities.TOP, velocities)
+        bottom2 = get_or_extrapolate(row, col - 1, velocities.BOTTOM, velocities)
         pos_t2 = velocities.coords(row, col - 1, velocities.TOP)
 
     # weights (alpha, 1-alpha) for linear interpolation along y-axis
-    alpha = (start_y - pos_t1[1]) / (pos_b1[1] - pos_t1[1])
+    alpha = (y - pos_t1[1]) / (pos_b1[1] - pos_t1[1])
 
     # weights (beta, 1-beta) for linear interpolation along x-axis
-    beta = (start_x - pos_t1[0]) / (pos_t2[0] - pos_t1[0])
+    beta = (x - pos_t1[0]) / (pos_t2[0] - pos_t1[0])
 
     # linear interpolation along y-axis
     y_vel1 = top1 * (1 - alpha) + bottom1 * alpha
@@ -114,14 +131,13 @@ def extrapolate(row, col, side, velocities):
     closest_row = np.clip(row, 0, velocities.grid_dim - 1)
     closest_col = np.clip(col, 0, velocities.grid_dim - 1)
 
-
     if row == closest_row:
         # Extrapolate in the x-direction
         return extrapolate_horizontally(row, closest_col, side, velocities, abs(closest_col - col))
 
     elif col == closest_col:
         # Extrapolate in the y-direction
-        return extrapolate_vertically(closest_row, col, side, velocities, abs(closest_row - row))  # TODO check if negative
+        return extrapolate_vertically(closest_row, col, side, velocities, abs(closest_row - row))
     else:
         # Extrapolate in both directions and interpolate
         horizontal_steps = abs(col - closest_col)
@@ -137,18 +153,24 @@ def extrapolate(row, col, side, velocities):
 
 def extrapolate_horizontally(row, closest_col, side, velocities, steps):
     # check if we are at the left or right boundary
-    # TODO: ensure, that if we are at the left boundary, left is used,
-    #  and if we are at the right boundary, right is used,
-    #  top and bottom do not matter,
-    #  for that change steps accordingly
-
     if closest_col == 0:
+        # we are at the left boundary
+        # if the side we are looking for is right, we take a step less and use the left side
+        if side == velocities.RIGHT:
+            steps -= 1
+            side = velocities.LEFT
+
         du = (
                 velocities[row, closest_col, side]
                 - velocities[row, closest_col + 1, side]
         )
         return velocities[row, closest_col, side] + du * steps
     elif closest_col == velocities.grid_dim - 1:
+        # we are at the right boundary
+        # if the side we are looking for is left, we take a step less and use the right side
+        if side == velocities.LEFT:
+            steps -= 1
+            side = velocities.RIGHT
         du = (
                 velocities[row, closest_col - 1, side]
                 - velocities[row, closest_col, side]
@@ -160,17 +182,25 @@ def extrapolate_horizontally(row, closest_col, side, velocities, steps):
 
 def extrapolate_vertically(closest_row, col, side, velocities, steps):
     # check if we are at the top or bottom boundary
-    # TODO: ensure, that if we are at the top boundary, top is used,
-    #  and if we are at the bottom boundary, bottom is used,
-    #  left and right do not matter,
-    #  for that change steps accordingly
     if closest_row == 0:
+        # we are at the top boundary
+        # if the side we are looking for is bottom, we take a step less and use the top side
+        if side == velocities.BOTTOM:
+            steps -= 1
+            side = velocities.TOP
+
         dv = (
                 velocities[closest_row, col, side]
                 - velocities[closest_row + 1, col, side]
         )
         return velocities[closest_row, col, side] + dv * steps
     elif closest_row == velocities.grid_dim - 1:
+        # we are at the bottom boundary
+        # if the side we are looking for is top, we take a step less and use the bottom side
+        if side == velocities.TOP:
+            steps -= 1
+            side = velocities.BOTTOM
+
         dv = (
                 velocities[closest_row - 1, col, side]
                 - velocities[closest_row, col, side]

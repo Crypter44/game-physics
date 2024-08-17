@@ -5,7 +5,7 @@ import staggered_grid as sg
 from staggered_grid import StaggeredGrid
 
 
-class MyTestCase(unittest.TestCase):
+class StaggeredGridTest(unittest.TestCase):
     grid = np.array(
         [[[1, 1], [2, 2]],
          [[3, 3], [4, 4]]]
