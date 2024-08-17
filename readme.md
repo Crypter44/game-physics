@@ -11,8 +11,6 @@ Each simulation is in a separate directory. The simulation and animation are sep
 In the animation file, configurations can be changed to change the simulation parameters. To render an animation, 
 run the animation file.
 
-_(Currently, the animations are not supported on linux)_
-
 ## Heated Plate
 The first simulation is a heated plate. 
 Heat is applied once to a spot on a plate and the heat spread is calculated over time.
@@ -20,3 +18,7 @@ Heat is applied once to a spot on a plate and the heat spread is calculated over
 ## Cloth Simulation
 The second simulation is a cloth simulation.
 A cloth is simulated with a grid of points connected by springs. The cloth is affected by gravity. 
+
+## Fluid Simulation
+The third simulation is a fluid simulation.
+A vortex is created in a fluid and the fluid is simulated using the Navier-Stokes equations.
