@@ -3,6 +3,7 @@ import sys
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import numpy as np
 
 import fluid_simulation as fs
 
@@ -15,7 +16,7 @@ elif sys.platform == 'darwin':
     mpl.use('macosx')
 
 # ---------- Video Configuration ----------
-animation_length = 15
+animation_length = 10
 animation_time_step = 0.01
 animation_frames = int(animation_length / animation_time_step)
 fps = 30
@@ -32,7 +33,7 @@ print(f"    Frame skip factor: {frame_skip_factor}\n")
 
 # ---------- Simulation Parameters ----------
 spacial_dim = 20
-rho = 1
+rho = 1.5
 vortex_speeds = [0.5]
 vortex_centers = [(9.5, 9.5)]
 clockwise = [True]
@@ -62,17 +63,18 @@ ax.set_xlabel('x')
 ax.set_ylabel('y')
 
 
-pressure_map = ax.imshow(pressures, cmap='Blues')
-flow_quiver = ax.quiver(velocities[:,:,0], velocities[:,:,1], color='Black', angles='xy')
+pressure_map = ax.imshow(pressures[0], cmap='Blues')
+flow_quiver = ax.quiver(velocities[0][:,:,0], velocities[0][:,:,1], color='Black', angles='xy')
 
 cbar = fig.colorbar(pressure_map, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
 cbar.set_label('Pressure')
 
 def update(frame):
-    pressure_map.set_data(pressures[frame*frame_skip_factor])
-    flow_quiver.set_UVC(velocities[frame*frame_skip_factor][:,:,0], velocities[frame*frame_skip_factor][:,:,1])
+    frame = int(frame*frame_skip_factor)
+    pressure_map.set_data(pressures[frame])
+    flow_quiver.set_UVC(velocities[frame][:,:,0], velocities[frame][:,:,1])
     return pressure_map, flow_quiver
 
-ani = animation.FuncAnimation(fig, update, frames=visible_frames, interval=1000/fps)
+ani = animation.FuncAnimation(fig, update, frames=int(visible_frames), interval=500)
 
 plt.show()

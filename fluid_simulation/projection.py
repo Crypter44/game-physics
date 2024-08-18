@@ -15,7 +15,9 @@ def project(solve, velocities, dt, rho=1):
     divergence = calculate_divergence(velocities)
     pressure = solve_poisson_equation(solve, divergence, dt, rho)
     pressure = pressure.reshape(velocities.grid_dim, velocities.grid_dim) # reshape the pressure back to grid form
-    return correct_velocities(velocities, pressure, dt), pressure
+    velocities = correct_velocities(velocities, pressure, dt)
+    new_divergence = calculate_divergence(velocities)
+    return velocities, pressure
 
 
 def calculate_divergence(velocities):
@@ -27,8 +29,8 @@ def calculate_divergence(velocities):
     divergence = np.zeros((velocities.grid_dim, velocities.grid_dim))
     for row in range(velocities.grid_dim):
         for col in range(velocities.grid_dim):
-            up, right, left, down = velocities[row, col]
-            divergence[row, col] = right - left + up - down  # dx = 1, so we don't need to divide by dx
+            up, right, down, left = velocities[row, col]
+            divergence[row, col] = right - left + down - up  # dx = 1, so we don't need to divide by dx
     return divergence.reshape(-1)
 
 

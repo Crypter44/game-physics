@@ -124,10 +124,10 @@ class StaggeredGrid:
 
     def test_bounds(self, row, col, side):
         if row < -1 or row > self.grid_dim:
-            raise StaggeredGridIndexError("Row index out of bounds")
+            raise StaggeredGridIndexError(f"Row index out of bounds ({row})")
 
         if col < -1 or col > self.grid_dim:
-            raise StaggeredGridIndexError("Column index out of bounds")
+            raise StaggeredGridIndexError(f"Column index out of bounds ({col})")
 
         if row == -1 and side != self.BOTTOM:
             raise StaggeredGridIndexError("Your row is out of regular bounds. You can only access the bottom side!")

@@ -12,19 +12,21 @@ def setup_vortex(spacial_dim, vortex_speed, vortex_center, clockwise=True):
 
     for row in range(spacial_dim):
         for col in range(spacial_dim):
-            # calculate the velocity at the center of the right wall
-            x, y = velocities.coords(row, col, velocities.RIGHT)
-            r = np.array([x, y]) - vortex_center
-            r_norm = np.linalg.norm(r)
-            u = vortex_speed / r_norm ** 2 * -r[1] * direction
-            velocities.set_right(row, col, u)
+            if col < spacial_dim - 1:
+                # calculate the velocity at the center of the right wall
+                x, y = velocities.coords(row, col, velocities.RIGHT)
+                r = np.array([x, y]) - vortex_center
+                r_norm = np.linalg.norm(r)
+                u = vortex_speed / r_norm ** 2 * -r[1] * direction
+                velocities.set_right(row, col, u)
 
-            # calculate the velocity at the center of the bottom wall
-            x, y = velocities.coords(row, col, velocities.BOTTOM)
-            r = np.array([x, y]) - vortex_center
-            r_norm = np.linalg.norm(r)
-            v = vortex_speed / r_norm ** 2 * r[0] * direction
-            velocities.set_bottom(row, col, v)
+            if row < spacial_dim - 1:
+                # calculate the velocity at the center of the bottom wall
+                x, y = velocities.coords(row, col, velocities.BOTTOM)
+                r = np.array([x, y]) - vortex_center
+                r_norm = np.linalg.norm(r)
+                v = vortex_speed / r_norm ** 2 * r[0] * direction
+                velocities.set_bottom(row, col, v)
 
     return velocities
 
